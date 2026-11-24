@@ -104,7 +104,7 @@ export default function App() {
   </form></main>;
 
   return <div className="app-shell">
-    <header className="topbar"><div className="brand"><img className="brand-logo" src="/lvlup-logo.svg" alt="LvL Up"/><div><b>Időmérő</b><span>SZOMBATHELY</span></div></div>
+    <header className="topbar"><div className="brand"><img className="brand-logo" src="/lvlup-logo.png" alt="LvL Up"/><div><b>Időmérő</b><span>SZOMBATHELY</span></div></div>
       <div className="top-actions"><span className={`role ${owner?"owner":""}`}><Shield size={14}/>{owner?"Tulajdonos":"Pultos"}</span><button className="icon-btn" onClick={loadData} title="Frissítés"><RefreshCw size={17}/></button><button className="icon-btn" onClick={logout} title="Kilépés"><LogOut size={17}/></button></div>
     </header>
     <nav className="tabs"><button className={tab==="timers"?"selected":""} onClick={()=>setTab("timers")}><Clock3 size={17}/> Stopperórák</button>
