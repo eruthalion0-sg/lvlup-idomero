@@ -3,7 +3,7 @@
 React/Vite webalkalmazás a hét eszköz időméréséhez, külön tulajdonosi és pultos PIN-nel.
 
 ## Díjszámítás
-Az első 70 perc 1 óra. 1:11-től 1,5 óra, 1:41-től 2 óra, majd minden további 30 perc túllépésekor újabb félóra. A számlázás egész percre felfelé kerekít.
+Az első 70 perc 1 óra. 1:11-től 1,5 óra, 1:41-től 2 óra, majd minden további 30 perc túllépésekor újabb félóra. A váltási küszöböket a teljesen eltelt percek alapján számolja (például 1:10:59 még 1 óra, 1:11:00 már 1,5 óra).
 
 ## 1. Supabase
 1. Hozz létre egy projektet: https://supabase.com
