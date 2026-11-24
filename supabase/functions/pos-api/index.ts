@@ -27,7 +27,7 @@ async function tokenFor(role:string){
  return `${payload}.${await sign(payload,Deno.env.get("TOKEN_SECRET")!)}`;
 }
 async function authorize(req:Request){
- const token=req.headers.get("authorization")?.replace(/^Bearer\\s+/i,"");
+ const token=req.headers.get("authorization")?.replace(/^Bearer\s+/i,"");
  if(!token)return null;
  const [payload,sig]=token.split(".");
  if(!payload||!sig||sig!==await sign(payload,Deno.env.get("TOKEN_SECRET")!))return null;
