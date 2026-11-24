@@ -84,11 +84,11 @@ export default function App() {
   }
 
   const totals=useMemo(()=>{
-    const start=new Date();
+    const start=range==="all"?null:new Date();
     if(range==="today")start.setHours(0,0,0,0);
     if(range==="week"){start.setHours(0,0,0,0);start.setDate(start.getDate()-((start.getDay()+6)%7))}
     if(range==="month"){start.setHours(0,0,0,0);start.setDate(1)}
-    const rows=history.filter(x=>new Date(x.ended_at)>=start);
+    const rows=history.filter(x=>!start||new Date(x.ended_at)>=start);
     return {rows,revenue:rows.reduce((s,x)=>s+Number(x.amount||0),0),
       duration:rows.reduce((s,x)=>s+new Date(x.ended_at)-new Date(x.started_at),0),
       devices:DEVICES.map(d=>({...d,rows:rows.filter(x=>x.device_key===d.key)}))};
@@ -125,7 +125,7 @@ export default function App() {
               <button className="primary wide" onClick={()=>runAction("start",d)}><Play size={16} fill="currentColor"/> Start</button></>}
           </article>
         })}</div></>}
-      {tab==="stats"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">ÁTTEKINTÉS</p><h1>Statisztikák</h1></div><select value={range} onChange={e=>setRange(e.target.value)}><option value="today">Ma</option><option value="week">Ezen a héten</option><option value="month">Ebben a hónapban</option></select></div>
+      {tab==="stats"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">ÁTTEKINTÉS</p><h1>Statisztikák</h1></div><select value={range} onChange={e=>setRange(e.target.value)}><option value="today">Ma</option><option value="week">Ezen a héten</option><option value="month">Ebben a hónapban</option><option value="all">Összes eddigi</option></select></div>
         <div className="stat-grid"><div className="stat-card"><Wallet/><span>Bevétel</span><b>{money(totals.revenue)}</b></div><div className="stat-card"><Activity/><span>Lezárt játék</span><b>{totals.rows.length} db</b></div><div className="stat-card"><Clock3/><span>Összes játékidő</span><b>{duration(totals.duration)}</b></div></div>
         <h2 className="subhead">Eszközönként</h2><div className="table-wrap"><table><thead><tr><th>Eszköz</th><th>Játékok</th><th>Használati idő</th><th>Bevétel</th></tr></thead><tbody>{totals.devices.map(d=><tr key={d.key}><td>{d.name}</td><td>{d.rows.length}</td><td>{duration(d.rows.reduce((s,x)=>s+new Date(x.ended_at)-new Date(x.started_at),0))}</td><td>{money(d.rows.reduce((s,x)=>s+Number(x.amount||0),0))}</td></tr>)}</tbody></table></div>
       </section>}
