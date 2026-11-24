@@ -57,8 +57,15 @@ Deno.serve(async(req)=>{
  }
  if(action==="history"&&req.method==="GET"){
   if(user.role!=="owner")return json({error:"Ehhez tulajdonosi jogosultság szükséges."},403);
-  const {data,error}=await admin.from("sessions").select("*").not("ended_at","is",null).order("ended_at",{ascending:false}).limit(2000);
-  if(error)return json({error:error.message},500);return json(data);
+  const all=[];
+  for(let from=0;;from+=1000){
+   const {data,error}=await admin.from("sessions").select("*").not("ended_at","is",null).order("ended_at",{ascending:false}).range(from,from+999);
+   if(error)return json({error:error.message},500);
+   const page=data||[];
+   all.push(...page);
+   if(page.length<1000)break;
+  }
+  return json(all);
  }
  if(action==="start"&&req.method==="POST"){
   const {device_key,guest_name}=await req.json();
