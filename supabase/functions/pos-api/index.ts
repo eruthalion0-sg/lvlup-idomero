@@ -6,7 +6,7 @@ const devices:Record<string,{rate:number}>={
  billiard:{rate:1500},scolia:{rate:2000},darts1:{rate:1000},darts2:{rate:1000},darts3:{rate:1000},foosball1:{rate:2000},foosball2:{rate:2000}
 };
 function amountFor(start:string,end:string,rate:number){
- const minutes=Math.ceil((new Date(end).getTime()-new Date(start).getTime())/60000);
+ const minutes=Math.floor((new Date(end).getTime()-new Date(start).getTime())/60000);
  const halfHours=minutes<=70?2:2+Math.ceil((minutes-70)/30);
  return Math.round(halfHours*rate/2);
 }
