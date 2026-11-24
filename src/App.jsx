@@ -21,7 +21,7 @@ const duration = ms => {
 };
 // First hour is charged in full. Extra half-hours start after the 10-minute grace period.
 function amountFor(ms, rate) {
-  const minutes=Math.ceil(Math.max(0,ms)/60000);
+  const minutes=Math.floor(Math.max(0,ms)/60000);
   const halfHours=minutes<=70 ? 2 : 2+Math.ceil((minutes-70)/30);
   return Math.round(halfHours*rate/2);
 }
