@@ -13,7 +13,7 @@ Az első 70 perc 1 óra. 1:11-től 1,5 óra, 1:41-től 2 óra, majd minden tová
 ## 2. PIN-ek és Edge Function
 A két PIN különböző, saját választású kód legyen. A PIN-ek SHA-256 hashét a következő PowerShell paranccsal készítheted el:
 ```powershell
-$pin='SAJAT_PIN'; $bytes=[Text.Encoding]::UTF8.GetBytes($pin); [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLower()
+$pin='SAJAT_PIN'; $bytes=[Text.Encoding]::UTF8.GetBytes($pin); $sha=[Security.Cryptography.SHA256]::Create(); [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','').ToLower()
 ```
 Supabase CLI-vel linkeld a projektet, majd állítsd be a titkokat:
 ```bash
