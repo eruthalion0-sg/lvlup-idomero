@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Activity, BarChart3, Clock3, LogOut, Play, Square, RefreshCw, Shield, Users, Wallet } from "lucide-react";
+import { Activity, BarChart3, Clock3, LogOut, Play, Square, RefreshCw, Shield, Users, Wallet, Trash2 } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -83,6 +83,13 @@ export default function App() {
     } catch(e){setMessage(e.message)}
   }
 
+  async function deleteSession(row){
+    const label=row.guest_name||"névtelen vendég";
+    if(!window.confirm("Biztosan törlöd "+label+" játékát? A törlés a statisztikákból is eltávolítja, és nem vonható vissza."))return;
+    try{await api("delete-session",session.token,"POST",{id:row.id});setMessage("A játék törölve, a statisztikák frissültek.");await loadData()}
+    catch(e){setMessage(e.message)}
+  }
+
   const totals=useMemo(()=>{
     const start=range==="all"?null:new Date();
     if(range==="today")start.setHours(0,0,0,0);
@@ -130,7 +137,7 @@ export default function App() {
         <h2 className="subhead">Eszközönként</h2><div className="table-wrap"><table><thead><tr><th>Eszköz</th><th>Játékok</th><th>Használati idő</th><th>Bevétel</th></tr></thead><tbody>{totals.devices.map(d=><tr key={d.key}><td>{d.name}</td><td>{d.rows.length}</td><td>{duration(d.rows.reduce((s,x)=>s+new Date(x.ended_at)-new Date(x.started_at),0))}</td><td>{money(d.rows.reduce((s,x)=>s+Number(x.amount||0),0))}</td></tr>)}</tbody></table></div>
       </section>}
       {tab==="history"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">KORÁBBI JÁTÉKOK</p><h1>Forgalmi napló</h1></div><span className="muted">{history.length} lezárt játék</span></div>
-        <div className="table-wrap"><table><thead><tr><th>Dátum</th><th>Vendég</th><th>Eszköz</th><th>Időtartam</th><th>Fizetendő</th></tr></thead><tbody>{history.map(x=><tr key={x.id}><td>{new Date(x.ended_at).toLocaleString("hu-HU")}</td><td>{x.guest_name}</td><td>{DEVICES.find(d=>d.key===x.device_key)?.name||x.device_key}</td><td>{duration(new Date(x.ended_at)-new Date(x.started_at))}</td><td><b>{money(x.amount)}</b></td></tr>)}</tbody></table></div>
+        <div className="table-wrap"><table><thead><tr><th>Dátum</th><th>Vendég</th><th>Eszköz</th><th>Időtartam</th><th>Fizetendő</th><th>Művelet</th></tr></thead><tbody>{history.map(x=><tr key={x.id}><td>{new Date(x.ended_at).toLocaleString("hu-HU")}</td><td>{x.guest_name}</td><td>{DEVICES.find(d=>d.key===x.device_key)?.name||x.device_key}</td><td>{duration(new Date(x.ended_at)-new Date(x.started_at))}</td><td><b>{money(x.amount)}</b></td><td><button className="icon-btn" title="Játék törlése" onClick={()=>deleteSession(x)}><Trash2 size={16}/></button></td></tr>)}</tbody></table></div>
       </section>}
     </main><footer>LvL Up • Időmérő <span>{loading?"Szinkronizálás…":"Adatok szinkronizálva"}</span></footer>
   </div>;
