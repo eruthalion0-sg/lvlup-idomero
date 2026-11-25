@@ -127,7 +127,7 @@ export default function App() {
             <div className="device-top"><div><h2>{d.name}</h2><span className="rate">{money(d.rate)} / óra</span></div><span className={`status ${run?"on":""}`}>{run?"FUT":"KÉSZENLÉT"}</span></div>
             {run?<><div className="guest-label">VENDÉG</div><div className="guest-name">{run.guest_name}</div><div className="timer">{duration(elapsed)}</div>
               <div className="charge-row"><span>Jelenlegi díj</span><b>{money(amountFor(elapsed,d.rate))}</b></div>
-              <button className="danger wide" onClick={()=>runAction("finish",d)}><Square size={16}/> Vége – lezárás</button></>
+              <button className="danger wide" onClick={()=>runAction("finish",d)}><Square size={16}/> Vége – lezárás</button>{owner&&<button className="cancel-session wide" onClick={()=>deleteSession(run)}><Trash2 size={15}/> Téves indítás törlése</button>}</>
             :<><div className="timer idle">00:00:00</div><input className="guest-input" placeholder="Vendég neve" value={names[d.key]||""} onChange={e=>setNames(v=>({...v,[d.key]:e.target.value}))}/>
               <button className="primary wide" onClick={()=>runAction("start",d)}><Play size={16} fill="currentColor"/> Start</button></>}
           </article>
