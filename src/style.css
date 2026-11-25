@@ -31,3 +31,21 @@ input,select{width:100%;border:1px solid #34465d;border-radius:11px;background:#
 .empty-items{font-size:12px;text-align:center;padding:8px}
 .add-item-form{margin:8px 0 0}
 @media(max-width:600px){.new-tab-form,.add-item-form{gap:7px}.new-tab-form button,.add-item-form button{padding:12px 10px}.tab-grid{grid-template-columns:1fr}.tab-card-head{align-items:flex-start}}
+
+
+/* Fizetési napló */
+.log-filter{display:flex;align-items:center;gap:10px;max-width:430px;margin-bottom:18px}
+.log-filter label{font-size:13px;color:#9eafc2;white-space:nowrap}
+.log-filter input{max-width:210px}
+.payment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.payment-card{background:linear-gradient(145deg,#172233,#101725);border:1px solid #2a4057;border-radius:16px;padding:17px;box-shadow:0 10px 24px #0003}
+.payment-head{display:flex;justify-content:space-between;align-items:start;gap:10px;padding-bottom:12px;border-bottom:1px solid #34465d}
+.payment-head h2{font-size:18px;margin:0 0 5px}
+.payment-head span:not(.paid-label){font-size:11px;color:#9eafc2}
+.paid-label{font-size:9px;font-weight:900;letter-spacing:.08em;color:#86e3b5;background:#14372e;border:1px solid #28644e;border-radius:99px;padding:6px 8px;white-space:nowrap}
+.payment-card ul{list-style:none;margin:8px 0;padding:0}
+.payment-card li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #29394d;font-size:13px}
+.payment-card li b{color:#ffabb5;white-space:nowrap}
+.payment-by{font-size:11px;color:#9eafc2;margin:12px 0 0}
+.payment-by b{color:#e5edf7}
+@media(max-width:600px){.log-filter{flex-wrap:wrap}.payment-list{grid-template-columns:1fr}}
