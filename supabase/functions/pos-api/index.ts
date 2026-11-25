@@ -51,6 +51,17 @@ Deno.serve(async(req)=>{
  }
  const user=await authorize(req);
  if(!user)return json({error:"A munkamenet lejárt vagy érvénytelen. Lépj be újra."},401);
+ if(action==="payment-log"&&req.method==="GET"){
+  if(user.role!=="owner")return json({error:"A fizetési napló csak tulajdonosi jogosultsággal érhető el."},403);
+  const {data,error}=await admin.from("guest_tab_payments").select("*").order("settled_at",{ascending:false});
+  if(error)return json({error:error.message},500);return json(data||[]);
+ }
+ if(action==="settle-guest-tab"&&req.method==="POST"){
+  const {id}=await req.json();
+  if(!id||typeof id!=="string")return json({error:"Hiányzó vagy érvénytelen számlaazonosító."},400);
+  const {data,error}=await admin.rpc("settle_guest_tab",{p_tab_id:id,p_settled_by:user.role});
+  if(error)return json({error:error.message},400);return json(data);
+ }
  if(action==="guest-tabs"&&req.method==="GET"){
   const {data,error}=await admin.from("guest_tabs").select("*,tab_items(*)").order("created_at",{ascending:true});
   if(error)return json({error:error.message},500);return json(data||[]);
