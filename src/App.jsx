@@ -41,6 +41,9 @@ export default function App() {
   const [error,setError]=useState("");
   const [active,setActive]=useState([]);
   const [history,setHistory]=useState([]);
+  const [tabsData,setTabsData]=useState([]);
+  const [newTabName,setNewTabName]=useState("");
+  const [newItems,setNewItems]=useState({});
   const [names,setNames]=useState({});
   const [now,setNow]=useState(Date.now());
   const [tab,setTab]=useState("timers");
@@ -59,6 +62,7 @@ export default function App() {
       const a=await api("active",session.token);
       setActive(a);
       if(session.role==="owner") setHistory(await api("history",session.token));
+      setTabsData(await api("guest-tabs",session.token));
     } catch(e) { setMessage(e.message); }
     finally { setLoading(false); }
   },[session]);
@@ -71,7 +75,27 @@ export default function App() {
     try { const data=await api("login",null,"POST",{pin});setSession(data);setPin("") }
     catch(e){setError(e.message)}
   }
-  function logout(){setSession(null);setActive([]);setHistory([]);setTab("timers")}
+  function logout(){setSession(null);setActive([]);setHistory([]);setTabsData([]);setTab("timers")}
+
+  async function createGuestTab(e){
+    e.preventDefault();const guest_name=newTabName.trim();if(!guest_name)return;
+    try{await api("create-guest-tab",session.token,"POST",{guest_name});setNewTabName("");await loadData();setMessage("Vendégszámla létrehozva.")}
+    catch(e){setMessage(e.message)}
+  }
+  async function addTabItem(tabId){
+    const item_name=(newItems[tabId]||"").trim();if(!item_name)return;
+    try{await api("add-tab-item",session.token,"POST",{tab_id:tabId,item_name});setNewItems(v=>({...v,[tabId]:""}));await loadData()}
+    catch(e){setMessage(e.message)}
+  }
+  async function changeTabItem(item,delta){
+    try{await api("change-tab-item",session.token,"POST",{id:item.id,quantity:Math.max(0,Number(item.quantity)+delta)});await loadData()}
+    catch(e){setMessage(e.message)}
+  }
+  async function settleGuestTab(row){
+    if(!window.confirm("Biztosan törlöd "+row.guest_name+" teljes fogyasztási listáját?"))return;
+    try{await api("delete-guest-tab",session.token,"POST",{id:row.id});await loadData();setMessage("A vendégszámla rendezettként törölve.")}
+    catch(e){setMessage(e.message)}
+  }
   async function runAction(kind,device){
     const guest=(names[device.key]||"").trim();
     if(kind==="start"&&!guest){setMessage("Előbb írd be a vendég nevét.");return}
@@ -115,6 +139,7 @@ export default function App() {
       <div className="top-actions"><span className={`role ${owner?"owner":""}`}><Shield size={14}/>{owner?"Tulajdonos":"Pultos"}</span><button className="icon-btn" onClick={loadData} title="Frissítés"><RefreshCw size={17}/></button><button className="icon-btn" onClick={logout} title="Kilépés"><LogOut size={17}/></button></div>
     </header>
     <nav className="tabs"><button className={tab==="timers"?"selected":""} onClick={()=>setTab("timers")}><Clock3 size={17}/> Stopperórák</button>
+      {<button className={tab==="guest-tabs"?"selected":""} onClick={()=>setTab("guest-tabs")}><Users size={17}/> Vendégszámlák</button>}
       {owner&&<button className={tab==="stats"?"selected":""} onClick={()=>setTab("stats")}><BarChart3 size={17}/> Statisztikák</button>}
       {owner&&<button className={tab==="history"?"selected":""} onClick={()=>setTab("history")}><Users size={17}/> Napló</button>}
     </nav>
@@ -132,6 +157,14 @@ export default function App() {
               <button className="primary wide" onClick={()=>runAction("start",d)}><Play size={16} fill="currentColor"/> Start</button></>}
           </article>
         })}</div></>}
+      {tab==="guest-tabs"&&<section><div className="section-heading"><div><p className="eyebrow">TÖRZSVENDÉGEK</p><h1>Vendégszámlák</h1></div><span className="muted">{tabsData.length} nyitott számla</span></div>
+        <form className="new-tab-form" onSubmit={createGuestTab}><input value={newTabName} onChange={e=>setNewTabName(e.target.value)} placeholder="Vendég neve" maxLength={80} required/><button className="primary" type="submit">+ Új vendég</button></form>
+        <div className="tab-grid">{tabsData.map(row=><article className="tab-card" key={row.id}><div className="tab-card-head"><h2>{row.guest_name}</h2><button className="settle-btn" onClick={()=>settleGuestTab(row)}><Trash2 size={15}/> Rendezve / törlés</button></div>
+          <div className="tab-items">{(row.tab_items||[]).map(item=><div className="tab-item" key={item.id}><span>{item.item_name}</span><div className="quantity-control"><button onClick={()=>changeTabItem(item,-1)} aria-label="Darabszám csökkentése">−</button><b>{item.quantity}</b><button onClick={()=>changeTabItem(item,1)} aria-label="Darabszám növelése">+</button></div></div>)}
+          {!row.tab_items?.length&&<p className="muted empty-items">Még nincs felírt fogyasztás.</p>}</div>
+          <form className="add-item-form" onSubmit={e=>{e.preventDefault();addTabItem(row.id)}}><input value={newItems[row.id]||""} onChange={e=>setNewItems(v=>({...v,[row.id]:e.target.value}))} placeholder="Új tétel neve" maxLength={100}/><button className="primary" type="submit">+ Tétel</button></form>
+        </article>)}</div>
+      </section>}
       {tab==="stats"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">ÁTTEKINTÉS</p><h1>Statisztikák</h1></div><select value={range} onChange={e=>setRange(e.target.value)}><option value="today">Ma</option><option value="week">Ezen a héten</option><option value="month">Ebben a hónapban</option><option value="all">Összes eddigi</option></select></div>
         <div className="stat-grid"><div className="stat-card"><Wallet/><span>Bevétel</span><b>{money(totals.revenue)}</b></div><div className="stat-card"><Activity/><span>Lezárt játék</span><b>{totals.rows.length} db</b></div><div className="stat-card"><Clock3/><span>Összes játékidő</span><b>{duration(totals.duration)}</b></div></div>
         <h2 className="subhead">Eszközönként</h2><div className="table-wrap"><table><thead><tr><th>Eszköz</th><th>Játékok</th><th>Használati idő</th><th>Bevétel</th></tr></thead><tbody>{totals.devices.map(d=><tr key={d.key}><td>{d.name}</td><td>{d.rows.length}</td><td>{duration(d.rows.reduce((s,x)=>s+new Date(x.ended_at)-new Date(x.started_at),0))}</td><td>{money(d.rows.reduce((s,x)=>s+Number(x.amount||0),0))}</td></tr>)}</tbody></table></div>
