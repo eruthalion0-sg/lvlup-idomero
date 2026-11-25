@@ -51,6 +51,38 @@ Deno.serve(async(req)=>{
  }
  const user=await authorize(req);
  if(!user)return json({error:"A munkamenet lejárt vagy érvénytelen. Lépj be újra."},401);
+ if(action==="guest-tabs"&&req.method==="GET"){
+  const {data,error}=await admin.from("guest_tabs").select("*,tab_items(*)").order("created_at",{ascending:true});
+  if(error)return json({error:error.message},500);return json(data||[]);
+ }
+ if(action==="create-guest-tab"&&req.method==="POST"){
+  const {guest_name}=await req.json();
+  if(!String(guest_name||"").trim())return json({error:"A vendég neve kötelező."},400);
+  const {data,error}=await admin.from("guest_tabs").insert({guest_name:String(guest_name).trim().slice(0,80)}).select().single();
+  if(error)return json({error:error.message},500);return json(data);
+ }
+ if(action==="add-tab-item"&&req.method==="POST"){
+  const {tab_id,item_name}=await req.json();
+  if(!tab_id||!String(item_name||"").trim())return json({error:"Hiányzó vendég vagy tételnév."},400);
+  const {data,error}=await admin.from("tab_items").insert({tab_id,item_name:String(item_name).trim().slice(0,100),quantity:1}).select().single();
+  if(error)return json({error:error.message},500);return json(data);
+ }
+ if(action==="change-tab-item"&&req.method==="POST"){
+  const {id,quantity}=await req.json();
+  if(!id||!Number.isInteger(quantity)||quantity<0||quantity>9999)return json({error:"Érvénytelen darabszám."},400);
+  if(quantity===0){
+   const {error}=await admin.from("tab_items").delete().eq("id",id);
+   if(error)return json({error:error.message},500);return json({deleted:true});
+  }
+  const {data,error}=await admin.from("tab_items").update({quantity}).eq("id",id).select().maybeSingle();
+  if(error)return json({error:error.message},500);if(!data)return json({error:"A tétel nem található."},404);return json(data);
+ }
+ if(action==="delete-guest-tab"&&req.method==="POST"){
+  const {id}=await req.json();
+  if(!id)return json({error:"Hiányzó számlaazonosító."},400);
+  const {data,error}=await admin.from("guest_tabs").delete().eq("id",id).select("id").maybeSingle();
+  if(error)return json({error:error.message},500);if(!data)return json({error:"A vendégszámla nem található."},404);return json({deleted:true});
+ }
  if(action==="active"&&req.method==="GET"){
   const {data,error}=await admin.from("sessions").select("*").is("ended_at",null).order("started_at");
   if(error)return json({error:error.message},500);return json(data);
