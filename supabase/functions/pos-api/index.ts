@@ -56,6 +56,15 @@ Deno.serve(async(req)=>{
   const {data,error}=await admin.from("guest_tab_payments").select("*").order("settled_at",{ascending:false});
   if(error)return json({error:error.message},500);return json(data||[]);
  }
+ if(action==="delete-payment-log"&&req.method==="POST"){
+  if(user.role!=="owner")return json({error:"Fizetési naplóbejegyzést csak tulajdonos törölhet."},403);
+  const {id}=await req.json();
+  if(!id||typeof id!=="string")return json({error:"Hiányzó vagy érvénytelen naplóazonosító."},400);
+  const {data,error}=await admin.from("guest_tab_payments").delete().eq("id",id).select("id").maybeSingle();
+  if(error)return json({error:error.message},500);
+  if(!data)return json({error:"A naplóbejegyzés nem található, vagy már törölték."},404);
+  return json({deleted:true,id:data.id});
+ }
  if(action==="settle-guest-tab"&&req.method==="POST"){
   const {id}=await req.json();
   if(!id||typeof id!=="string")return json({error:"Hiányzó vagy érvénytelen számlaazonosító."},400);
