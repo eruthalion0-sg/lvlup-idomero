@@ -42,6 +42,8 @@ export default function App() {
   const [active,setActive]=useState([]);
   const [history,setHistory]=useState([]);
   const [tabsData,setTabsData]=useState([]);
+  const [paymentLog,setPaymentLog]=useState([]);
+  const [logDate,setLogDate]=useState("");
   const [newTabName,setNewTabName]=useState("");
   const [newItems,setNewItems]=useState({});
   const [names,setNames]=useState({});
@@ -61,7 +63,10 @@ export default function App() {
     try {
       const a=await api("active",session.token);
       setActive(a);
-      if(session.role==="owner") setHistory(await api("history",session.token));
+      if(session.role==="owner") {
+        setHistory(await api("history",session.token));
+        setPaymentLog(await api("payment-log",session.token));
+      }
       setTabsData(await api("guest-tabs",session.token));
     } catch(e) { setMessage(e.message); }
     finally { setLoading(false); }
@@ -92,8 +97,8 @@ export default function App() {
     catch(e){setMessage(e.message)}
   }
   async function settleGuestTab(row){
-    if(!window.confirm("Biztosan törlöd "+row.guest_name+" teljes fogyasztási listáját?"))return;
-    try{await api("delete-guest-tab",session.token,"POST",{id:row.id});await loadData();setMessage("A vendégszámla rendezettként törölve.")}
+    if(!window.confirm("Biztosan lezárod és kifizetettként naplózod "+row.guest_name+" számláját?"))return;
+    try{await api("settle-guest-tab",session.token,"POST",{id:row.id});await loadData();setMessage("A vendégszámla lezárva és elmentve a fizetési naplóba.")}
     catch(e){setMessage(e.message)}
   }
   async function runAction(kind,device){
@@ -141,7 +146,8 @@ export default function App() {
     <nav className="tabs"><button className={tab==="timers"?"selected":""} onClick={()=>setTab("timers")}><Clock3 size={17}/> Stopperórák</button>
       {<button className={tab==="guest-tabs"?"selected":""} onClick={()=>setTab("guest-tabs")}><Users size={17}/> Vendégszámlák</button>}
       {owner&&<button className={tab==="stats"?"selected":""} onClick={()=>setTab("stats")}><BarChart3 size={17}/> Statisztikák</button>}
-      {owner&&<button className={tab==="history"?"selected":""} onClick={()=>setTab("history")}><Users size={17}/> Napló</button>}
+      {owner&&<button className={tab==="payment-log"?"selected":""} onClick={()=>setTab("payment-log")}><Wallet size={17}/> Fizetési napló</button>}
+      {owner&&<button className={tab==="history"?"selected":""} onClick={()=>setTab("history")}><Users size={17}/> Játék napló</button>}
     </nav>
     <main className="content">
       {message&&<div className="toast">{message}<button onClick={()=>setMessage("")}>×</button></div>}
@@ -168,6 +174,15 @@ export default function App() {
       {tab==="stats"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">ÁTTEKINTÉS</p><h1>Statisztikák</h1></div><select value={range} onChange={e=>setRange(e.target.value)}><option value="today">Ma</option><option value="week">Ezen a héten</option><option value="month">Ebben a hónapban</option><option value="all">Összes eddigi</option></select></div>
         <div className="stat-grid"><div className="stat-card"><Wallet/><span>Bevétel</span><b>{money(totals.revenue)}</b></div><div className="stat-card"><Activity/><span>Lezárt játék</span><b>{totals.rows.length} db</b></div><div className="stat-card"><Clock3/><span>Összes játékidő</span><b>{duration(totals.duration)}</b></div></div>
         <h2 className="subhead">Eszközönként</h2><div className="table-wrap"><table><thead><tr><th>Eszköz</th><th>Játékok</th><th>Használati idő</th><th>Bevétel</th></tr></thead><tbody>{totals.devices.map(d=><tr key={d.key}><td>{d.name}</td><td>{d.rows.length}</td><td>{duration(d.rows.reduce((s,x)=>s+new Date(x.ended_at)-new Date(x.started_at),0))}</td><td>{money(d.rows.reduce((s,x)=>s+Number(x.amount||0),0))}</td></tr>)}</tbody></table></div>
+      </section>}
+      {tab==="payment-log"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">LEZÁRT VENDÉGSZÁMLÁK</p><h1>Fizetési napló</h1></div><span className="muted">{paymentLog.length} lezárt számla</span></div>
+        <div className="log-filter"><label htmlFor="log-date">Dátum szűrése</label><input id="log-date" type="date" value={logDate} onChange={e=>setLogDate(e.target.value)}/><button className="icon-btn" onClick={()=>setLogDate("")} title="Szűrő törlése">×</button></div>
+        <div className="payment-list">{paymentLog.filter(x=>!logDate||new Date(x.settled_at).toLocaleDateString("sv-SE")===logDate).map(x=><article className="payment-card" key={x.id}>
+          <div className="payment-head"><div><h2>{x.guest_name}</h2><span>{new Date(x.settled_at).toLocaleString("hu-HU")}</span></div><span className="paid-label">KIFIZETVE</span></div>
+          <ul>{(x.items||[]).map((item,i)=><li key={i}><span>{item.item_name}</span><b>× {item.quantity}</b></li>)}</ul>
+          <p className="payment-by">Lezárta: <b>{x.settled_by==="owner"?"Tulajdonos":"Pultos"}</b></p>
+        </article>)}
+        {!paymentLog.some(x=>!logDate||new Date(x.settled_at).toLocaleDateString("sv-SE")===logDate)&&<p className="muted empty-items">Nincs lezárt vendégszámla ezen a napon.</p>}</div>
       </section>}
       {tab==="history"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">KORÁBBI JÁTÉKOK</p><h1>Forgalmi napló</h1></div><span className="muted">{history.length} lezárt játék</span></div>
         <div className="table-wrap"><table><thead><tr><th>Dátum</th><th>Vendég</th><th>Eszköz</th><th>Időtartam</th><th>Fizetendő</th><th>Művelet</th></tr></thead><tbody>{history.map(x=><tr key={x.id}><td>{new Date(x.ended_at).toLocaleString("hu-HU")}</td><td>{x.guest_name}</td><td>{DEVICES.find(d=>d.key===x.device_key)?.name||x.device_key}</td><td>{duration(new Date(x.ended_at)-new Date(x.started_at))}</td><td><b>{money(x.amount)}</b></td><td><button className="icon-btn" title="Játék törlése" onClick={()=>deleteSession(x)}><Trash2 size={16}/></button></td></tr>)}</tbody></table></div>
