@@ -10,3 +10,24 @@ input,select{width:100%;border:1px solid #34465d;border-radius:11px;background:#
 @media(max-width:600px){.topbar{padding:7px 14px;min-height:76px}.brand-logo{width:78px;height:58px}.content{padding:20px 15px}.tabs{padding:10px 12px 0}.tabs button{padding:10px 8px;font-size:12px}.section-heading{align-items:start;flex-direction:column}.device-grid{grid-template-columns:1fr}.device-card{min-height:0}.timer{font-size:38px}.login-card{padding:26px}.stat-card b{font-size:20px}}
 
 .cancel-session{background:transparent;border:1px solid #79404a;color:#ffabb5;border-radius:12px;padding:10px 14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}.cancel-session:hover{background:#3b1721;border-color:#d51f32}
+
+
+/* Vendégszámlák */
+.new-tab-form,.add-item-form{display:flex;gap:10px;margin-bottom:18px}
+.new-tab-form input,.add-item-form input{flex:1;min-width:0}
+.new-tab-form button,.add-item-form button{white-space:nowrap}
+.tab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.tab-card{background:linear-gradient(145deg,#172233,#101725);border:1px solid #2a4057;border-radius:17px;padding:18px;box-shadow:0 12px 28px #0004}
+.tab-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #34465d}
+.tab-card-head h2{margin:0;font-size:19px;overflow-wrap:anywhere}
+.settle-btn{display:flex;align-items:center;gap:6px;border:1px solid #79404a;background:#321923;color:#ffb5bd;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.tab-items{padding:8px 0 12px;min-height:48px}
+.tab-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #29394d}
+.tab-item>span{font-weight:600;overflow-wrap:anywhere}
+.quantity-control{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.quantity-control button{width:34px;height:34px;border:1px solid #31506b;border-radius:9px;background:#142b40;color:#fff;font-size:21px;font-weight:700;line-height:1}
+.quantity-control button:last-child{background:#35151e;border-color:#8d2939}
+.quantity-control b{min-width:20px;text-align:center;font-size:16px;font-variant-numeric:tabular-nums}
+.empty-items{font-size:12px;text-align:center;padding:8px}
+.add-item-form{margin:8px 0 0}
+@media(max-width:600px){.new-tab-form,.add-item-form{gap:7px}.new-tab-form button,.add-item-form button{padding:12px 10px}.tab-grid{grid-template-columns:1fr}.tab-card-head{align-items:flex-start}}
