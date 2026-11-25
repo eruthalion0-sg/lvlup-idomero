@@ -101,6 +101,11 @@ export default function App() {
     try{await api("settle-guest-tab",session.token,"POST",{id:row.id});await loadData();setMessage("A vendégszámla lezárva és elmentve a fizetési naplóba.")}
     catch(e){setMessage(e.message)}
   }
+  async function deletePaymentLog(row){
+    if(!window.confirm("Biztosan véglegesen törlöd "+row.guest_name+" fizetési naplóbejegyzését? Ez a művelet nem vonható vissza."))return;
+    try{await api("delete-payment-log",session.token,"POST",{id:row.id});await loadData();setMessage("A fizetési naplóbejegyzés törölve.")}
+    catch(e){setMessage(e.message)}
+  }
   async function runAction(kind,device){
     const guest=(names[device.key]||"").trim();
     if(kind==="start"&&!guest){setMessage("Előbb írd be a vendég nevét.");return}
@@ -178,7 +183,7 @@ export default function App() {
       {tab==="payment-log"&&owner&&<section><div className="section-heading"><div><p className="eyebrow">LEZÁRT VENDÉGSZÁMLÁK</p><h1>Fizetési napló</h1></div><span className="muted">{paymentLog.length} lezárt számla</span></div>
         <div className="log-filter"><label htmlFor="log-date">Dátum szűrése</label><input id="log-date" type="date" value={logDate} onChange={e=>setLogDate(e.target.value)}/><button className="icon-btn" onClick={()=>setLogDate("")} title="Szűrő törlése">×</button></div>
         <div className="payment-list">{paymentLog.filter(x=>!logDate||new Date(x.settled_at).toLocaleDateString("sv-SE")===logDate).map(x=><article className="payment-card" key={x.id}>
-          <div className="payment-head"><div><h2>{x.guest_name}</h2><span>{new Date(x.settled_at).toLocaleString("hu-HU")}</span></div><span className="paid-label">KIFIZETVE</span></div>
+          <div className="payment-head"><div><h2>{x.guest_name}</h2><span>{new Date(x.settled_at).toLocaleString("hu-HU")}</span></div><div className="payment-actions"><span className="paid-label">KIFIZETVE</span><button className="icon-btn" title="Naplóbejegyzés törlése" onClick={()=>deletePaymentLog(x)}><Trash2 size={16}/></button></div></div>
           <ul>{(x.items||[]).map((item,i)=><li key={i}><span>{item.item_name}</span><b>× {item.quantity}</b></li>)}</ul>
           <p className="payment-by">Lezárta: <b>{x.settled_by==="owner"?"Tulajdonos":"Pultos"}</b></p>
         </article>)}
