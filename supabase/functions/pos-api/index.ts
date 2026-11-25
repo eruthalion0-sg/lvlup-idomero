@@ -67,6 +67,15 @@ Deno.serve(async(req)=>{
   }
   return json(all);
  }
+ if(action==="delete-session"&&req.method==="POST"){
+  if(user.role!=="owner")return json({error:"Törölni csak tulajdonosi jogosultsággal lehet."},403);
+  const {id}=await req.json();
+  if(!id||typeof id!=="string")return json({error:"Hiányzó vagy érvénytelen játékazonosító."},400);
+  const {data,error}=await admin.from("sessions").delete().eq("id",id).select("id").maybeSingle();
+  if(error)return json({error:error.message},500);
+  if(!data)return json({error:"A játék nem található, vagy már törölték."},404);
+  return json({deleted:true,id:data.id});
+ }
  if(action==="start"&&req.method==="POST"){
   const {device_key,guest_name}=await req.json();
   if(!devices[device_key]||!String(guest_name||"").trim())return json({error:"Hiányzó vagy érvénytelen eszköz/vendégnév."},400);
